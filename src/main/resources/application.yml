@@ -1,0 +1,61 @@
+# ── Default profile (used locally with docker-compose) ────────────────────────
+spring:
+  application:
+    name: employee-service
+
+  datasource:
+    # These values are overridden by environment variables in Kubernetes (Step 6)
+    # In K8s we inject DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD as secrets
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:employeedb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # update → auto-creates/updates tables based on entity classes
+      # In production you'd use Flyway/Liquibase migrations instead
+      ddl-auto: update
+    show-sql: false                   # set to true locally for debugging
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080
+
+# ── Actuator: exposes health + metrics endpoints ───────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus  # /actuator/prometheus → Grafana
+  endpoint:
+    health:
+      show-details: always   # Kubernetes liveness probe reads this
+
+# ── Logging: structured JSON format makes ELK stack parsing easy ───────────────
+logging:
+  level:
+    com.cicd.demo: INFO
+    org.springframework.web: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# ── Test profile (activated during `mvn test`) ────────────────────────────────
+# Spring Boot auto-detects the H2 in-memory DB — no real Postgres needed
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop    # fresh schema for every test run
+    database-platform: org.hibernate.dialect.H2Dialect

@@ -1,0 +1,15 @@
+# Don't send these to the Docker daemon — speeds up build context
+target/
+*.iml
+.idea/
+.git/
+.gitignore
+README.md
+docker-compose*.yml
+Jenkinsfile
+kubernetes/
+terraform/
+
+# Never bake secrets into the image
+*.env
+.env*
