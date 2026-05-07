@@ -266,48 +266,22 @@ pipeline {
     // POST — runs after ALL stages, regardless of success/failure
     // ════════════════════════════════════════════════════════════════
     post {
+            always {
+                echo "Pipeline finished. Cleaning up..."
+                sh "docker rmi ${DOCKER_IMAGE}:scan-${IMAGE_TAG} || true"
+            }
 
-        // Runs on every build completion
-        always {
-            echo "Pipeline finished. Cleaning up Docker images from agent..."
-            sh "docker rmi ${DOCKER_IMAGE}:scan-${IMAGE_TAG} || true"
-            // '|| true' → don't fail if image doesn't exist (e.g. build failed early)
-        }
+            success {
+                echo "✅ BUILD SUCCEEDED - Branch: ${GIT_BRANCH} | Build: ${BUILD_NUMBER}"
+            }
 
-        success {
-            echo "✅ BUILD SUCCEEDED"
-            // Send Slack success notification
-            slackSend(
-                channel: "${SLACK_CHANNEL}",
-                color:   'good',          // green
-                message: """✅ *BUILD PASSED* — ${APP_NAME}
-                    Branch  : ${GIT_BRANCH}
-                    Commit  : ${GIT_COMMIT[0..6]}
-                    Image   : ${DOCKER_IMAGE}:${IMAGE_TAG}
-                    Duration: ${currentBuild.durationString}
-                    Build   : ${BUILD_URL}"""
-            )
-        }
+            failure {
+                echo "❌ BUILD FAILED - Branch: ${GIT_BRANCH} | Build: ${BUILD_NUMBER}"
+            }
 
-        failure {
-            echo "❌ BUILD FAILED"
-            slackSend(
-                channel: "${SLACK_CHANNEL}",
-                color:   'danger',
-                message: """❌ *BUILD FAILED* — ${APP_NAME}
-                    Branch : ${GIT_BRANCH}
-                    Commit : ${GIT_COMMIT[0..6]}
-                    Build  : ${BUILD_URL}"""
-            )
-        }
-
-        unstable {
-            // 'unstable' = tests ran but some failed (yellow in Jenkins)
-            slackSend(
-                channel: "${SLACK_CHANNEL}",
-                color:   'warning',       // yellow
-                message: "⚠️ *BUILD UNSTABLE* — ${APP_NAME} | ${GIT_BRANCH} | ${BUILD_URL}"
-            )
+            unstable {
+                echo "⚠️ BUILD UNSTABLE - Branch: ${GIT_BRANCH} | Build: ${BUILD_NUMBER}"
+            }
         }
     }
 }
