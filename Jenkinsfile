@@ -71,7 +71,7 @@ pipeline {
                 echo "╔══════════════════════════════════╗"
                 echo "║  Branch  : ${GIT_BRANCH}         ║"
                 echo "║  Commit  : ${GIT_COMMIT}         ║"
-                echo "║  Author  : ${GIT_AUTHOR_NAME}    ║"
+                echo "║  Build   : ${BUILD_NUMBER}       ║"
                 echo "╚══════════════════════════════════╝"
 
                 // Clean workspace before build — avoids stale artifacts
@@ -291,14 +291,12 @@ pipeline {
 
         failure {
             echo "❌ BUILD FAILED"
-            // Send Slack failure notification with which stage failed
             slackSend(
                 channel: "${SLACK_CHANNEL}",
-                color:   'danger',        // red
+                color:   'danger',
                 message: """❌ *BUILD FAILED* — ${APP_NAME}
                     Branch : ${GIT_BRANCH}
                     Commit : ${GIT_COMMIT[0..6]}
-                    Stage  : ${FAILED_STAGE}
                     Build  : ${BUILD_URL}"""
             )
         }
