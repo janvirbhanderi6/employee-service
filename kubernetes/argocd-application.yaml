@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: employee-service
+  namespace: argocd          # ArgoCD itself lives in the argocd namespace
+  labels:
+    app: employee-service
+spec:
+
+  # ── Which ArgoCD instance manages this app ────────────────────
+  project: default
+
+  # ── Source: where to find the Kubernetes manifests ────────────
+  source:
+    # ⚠️  Replace with your actual GitHub repo URL
+    repoURL: https://github.com/janvi0612/employee-service.git
+    targetRevision: main       # watch the main branch
+    path: kubernetes           # folder inside the repo with the YAML files
+
+  # ── Destination: which cluster and namespace to deploy to ─────
+  destination:
+    server: https://kubernetes.default.svc   # the local cluster
+    namespace: employee-service              # our app namespace
+
+  # ── Sync policy: how ArgoCD handles changes ───────────────────
+  syncPolicy:
+
+    automated:
+      prune: true       # delete K8s resources removed from Git
+      selfHeal: true    # if someone manually changes the cluster,
+      # ArgoCD reverts it back to what Git says
+
+    syncOptions:
+      - CreateNamespace=true    # creates namespace if it doesn't exist
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true          # delete old resources after new ones are healthy
+
+    retry:
+      limit: 5                  # retry failed syncs up to 5 times
+      backoff:
+        duration: 5s
+        factor: 2               # wait 5s, 10s, 20s, 40s, 80s between retries
+        maxDuration: 3m
