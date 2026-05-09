@@ -77,11 +77,8 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-            when {
-                branch 'main'
-            }
             steps {
-                sh "docker build -t yourdockerhubusername/employee-service:${BUILD_NUMBER} ."
+                sh "docker build -t janvi0612/employee-service:${BUILD_NUMBER} ."
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-credentials',
                     usernameVariable: 'DOCKER_USER',
@@ -89,9 +86,9 @@ pipeline {
                 )]) {
                     sh """
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push yourdockerhubusername/employee-service:${BUILD_NUMBER}
-                        docker tag yourdockerhubusername/employee-service:${BUILD_NUMBER} yourdockerhubusername/employee-service:latest
-                        docker push yourdockerhubusername/employee-service:latest
+                        docker push janvi0612/employee-service:${BUILD_NUMBER}
+                        docker tag janvi0612/employee-service:${BUILD_NUMBER} janvi0612/employee-service:latest
+                        docker push janvi0612/employee-service:latest
                     """
                 }
             }
