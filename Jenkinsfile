@@ -9,8 +9,7 @@ pipeline {
 
     environment {
         APP_NAME     = 'employee-service'
-        APP_VERSION  = '1.0.0'
-        DOCKER_IMAGE = "yourdockerhubusername/employee-service"
+        DOCKER_IMAGE = 'yourdockerhubusername/employee-service'
         IMAGE_TAG    = "${BUILD_NUMBER}"
         SONAR_SERVER = 'SonarQube'
     }
@@ -26,16 +25,16 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo "Branch  : ${GIT_BRANCH}"
-                echo "Commit  : ${GIT_COMMIT}"
-                echo "Build # : ${BUILD_NUMBER}"
+                // Wipe workspace first — fixes corrupted git directory issues
+                deleteDir()
                 checkout scm
+                echo "Branch : ${GIT_BRANCH}"
+                echo "Commit : ${GIT_COMMIT}"
             }
         }
 
         stage('Build') {
             steps {
-                echo "Building ${APP_NAME}..."
                 sh 'mvn clean package -DskipTests -B'
             }
             post {
@@ -82,7 +81,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${IMAGE_TAG} ."
+                sh "docker build -t yourdockerhubusername/employee-service:${BUILD_NUMBER} ."
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-credentials',
                     usernameVariable: 'DOCKER_USER',
@@ -90,9 +89,9 @@ pipeline {
                 )]) {
                     sh """
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push ${DOCKER_IMAGE}:${IMAGE_TAG}
-                        docker tag ${DOCKER_IMAGE}:${IMAGE_TAG} ${DOCKER_IMAGE}:latest
-                        docker push ${DOCKER_IMAGE}:latest
+                        docker push yourdockerhubusername/employee-service:${BUILD_NUMBER}
+                        docker tag yourdockerhubusername/employee-service:${BUILD_NUMBER} yourdockerhubusername/employee-service:latest
+                        docker push yourdockerhubusername/employee-service:latest
                     """
                 }
             }
@@ -102,17 +101,15 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished."
-            sh "docker rmi ${DOCKER_IMAGE}:${IMAGE_TAG} || true"
+            // Hardcoded strings — env vars not available if pipeline fails at checkout
+            echo "Pipeline finished — employee-service #${BUILD_NUMBER}"
+            sh "docker rmi yourdockerhubusername/employee-service:${BUILD_NUMBER} || true"
         }
         success {
-            echo "✅ BUILD SUCCEEDED — ${APP_NAME} #${BUILD_NUMBER}"
+            echo "✅ BUILD SUCCEEDED — employee-service #${BUILD_NUMBER}"
         }
         failure {
-            echo "❌ BUILD FAILED — ${APP_NAME} #${BUILD_NUMBER}"
-        }
-        unstable {
-            echo "⚠️ BUILD UNSTABLE — ${APP_NAME} #${BUILD_NUMBER}"
+            echo "❌ BUILD FAILED — employee-service #${BUILD_NUMBER}"
         }
     }
 }
