@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: employee-service-ingress
+  namespace: employee-service
+  labels:
+    app: employee-service
+  annotations:
+    # nginx ingress controller annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx   # tells K8s to use nginx ingress controller
+
+  rules:
+    - host: employee-service.local   # add this to /etc/hosts for local testing
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: employee-service
+                port:
+                  number: 80
+
+# ── Local testing setup ────────────────────────────────────────────
+# Add this line to C:\Windows\System32\drivers\etc\hosts (run as admin):
+#   127.0.0.1   employee-service.local
+#
+# Then access: http://employee-service.local/api/employees

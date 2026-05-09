@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: employee-service-config
+  namespace: employee-service
+  labels:
+    app: employee-service
+data:
+  # These become environment variables inside the pod
+  # Our application.yml reads these via ${DB_HOST}, ${DB_PORT} etc.
+
+  DB_HOST: "postgres-service"   # name of the PostgreSQL Service in K8s
+  DB_PORT: "5432"
+  DB_NAME: "employeedb"
+
+  # Spring profile — uses the default (PostgreSQL) profile, not test (H2)
+  SPRING_PROFILES_ACTIVE: "default"
+
+  # JVM logging level
+  LOGGING_LEVEL_ROOT: "INFO"
+  LOGGING_LEVEL_COM_CICD_DEMO: "INFO"

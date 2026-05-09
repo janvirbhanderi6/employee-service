@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: employee-service
+  labels:
+    app: employee-service
+    # This label is what ArgoCD uses to find and manage this namespace (Step 5)
+    managed-by: argocd
