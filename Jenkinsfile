@@ -100,16 +100,14 @@ pipeline {
     }
 
     post {
-        always {
-            // Hardcoded strings — env vars not available if pipeline fails at checkout
-            echo "Pipeline finished — employee-service #${BUILD_NUMBER}"
-            sh "docker rmi yourdockerhubusername/employee-service:${BUILD_NUMBER} || true"
+            always {
+                echo "Pipeline finished — employee-service #${BUILD_NUMBER}"
+            }
+            success {
+                echo "✅ BUILD SUCCEEDED — employee-service #${BUILD_NUMBER}"
+            }
+            failure {
+                echo "❌ BUILD FAILED — employee-service #${BUILD_NUMBER}"
+            }
         }
-        success {
-            echo "✅ BUILD SUCCEEDED — employee-service #${BUILD_NUMBER}"
-        }
-        failure {
-            echo "❌ BUILD FAILED — employee-service #${BUILD_NUMBER}"
-        }
-    }
 }
